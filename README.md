@@ -9,8 +9,6 @@ countries analysed in the paper.
 The code used to map the policy instruments ('PolicyInstruments.csv'), sectors and mitigation areas to the 
 policy options is in the file 'Code.csv.'
 
-The definition of the fields in the database is presented below.
-
 The main scripts are found in the root folder:
 
  - DataPreparation.py prepares the data for the analysis, including general cleaning and filters.
