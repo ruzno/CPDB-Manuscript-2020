@@ -1,9 +1,9 @@
-from AnalysisIPCC import results_prevalence
+from Analysis import r_prevalence
 import pandas as pd
 from mlxtend.frequent_patterns import apriori
 from mlxtend.frequent_patterns import association_rules
 
-df_association_input = results_prevalence.fillna(0)
+df_association_input = r_prevalence.fillna(0)
 df_association_base = df_association_input.iloc[:, 0:3]
 
 df_association_data = df_association_input.iloc[:, 3:8]

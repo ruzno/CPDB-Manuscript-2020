@@ -2,7 +2,6 @@ from DataPreparation import df_PolWide
 from DataPreparation import df_countries
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 
 # Needs to be adjusted in case we are dealing with all policy instrument types
 # This creates the dataframe that will be used to create the IPCC CH13 figure
@@ -23,10 +22,11 @@ df_IPCC['AnyPolicyInstrument'] = np.where(((df_IPCC['DirectInvestment'] == True)
                                           True,
                                           False)
 
-# <editor-fold desc="ANALYSIS PREVALENCE filtered">
+# <editor-fold desc="ANALYSIS PREVALENCE">
 
 # Melting the information on policy instruments into a column
 # this will be used to transform the data from wide to tidy
+
 select_instrument = df_IPCC.iloc[:, np.r_[0, 18:24]]  # current code needs this to be edited if n instruments change
 melt_instrument = pd.melt(select_instrument, id_vars="PolicyID", value_vars=["DirectInvestment",
                                                                              "FiscalorFinancialIncentives",
@@ -58,34 +58,30 @@ base = base.sort_values(by=['PolicyID', 'PolicyInstrument'])
 df_PolTidy = pd.merge(base, df_PolWide, how='left', on="PolicyID")[['PolicyID',
                                                                     'PolicyInstrument',
                                                                     'Sector',
-                                                                    'Country',
-                                                                    'Dateofdecision']]
+                                                                    'Policy[Country]',
+                                                                    'Policy[Date of decision]',
+                                                                    '2010in',
+                                                                    '2010certain',
+                                                                    '2000in',
+                                                                    '2000certain']]
 
-df_PolCountry = pd.merge(df_PolTidy, df_countries, how='left', left_on='Country', right_on='CountryCPDB')
+df_PolCountry = pd.merge(df_PolTidy, df_countries, how='left', left_on='Policy[Country]', right_on='Name in CPDB')
 
 # ANALYSIS PREVALENCE FOR THE IPCC
 
-df2000 = df_PolCountry[df_PolCountry['Dateofdecision'] <= 2000]
-df2005 = df_PolCountry[df_PolCountry['Dateofdecision'] <= 2005]
-df2010 = df_PolCountry[df_PolCountry['Dateofdecision'] <= 2010]
-df2015 = df_PolCountry[df_PolCountry['Dateofdecision'] <= 2015]
-df2020 = df_PolCountry[df_PolCountry['Dateofdecision'] <= 2020]
+df2000 = df_PolCountry[df_PolCountry['Policy[Date of decision]'] <= 2000]
+df2005 = df_PolCountry[df_PolCountry['Policy[Date of decision]'] <= 2005]
+df2010 = df_PolCountry[df_PolCountry['Policy[Date of decision]'] <= 2010]
+df2015 = df_PolCountry[df_PolCountry['Policy[Date of decision]'] <= 2015]
+df2020 = df_PolCountry[df_PolCountry['Policy[Date of decision]'] <= 2020]
 
 # OPTION 1, based on emissions
 
-prevalence2000 = df2000.groupby(['Sector', 'PolicyInstrument', 'CountryCPDB'])['ShareEmissionsIncl'].mean()
-prevalence2005 = df2005.groupby(['Sector', 'PolicyInstrument', 'CountryCPDB'])['ShareEmissionsIncl'].mean()
-prevalence2010 = df2010.groupby(['Sector', 'PolicyInstrument', 'CountryCPDB'])['ShareEmissionsIncl'].mean()
-prevalence2015 = df2015.groupby(['Sector', 'PolicyInstrument', 'CountryCPDB'])['ShareEmissionsIncl'].mean()
-prevalence2020 = df2020.groupby(['Sector', 'PolicyInstrument', 'CountryCPDB'])['ShareEmissionsIncl'].mean()
-
-# OPTION 1, based on count of countries
-
-# prevalence2000 = df2000.groupby(['Sector', 'PolicyInstrument'])['Country_x'].nunique()
-# prevalence2005 = df2005.groupby(['Sector', 'PolicyInstrument'])['Country_x'].nunique()
-# prevalence2010 = df2010.groupby(['Sector', 'PolicyInstrument'])['Country_x'].nunique()
-# prevalence2015 = df2015.groupby(['Sector', 'PolicyInstrument'])['Country_x'].nunique()
-# prevalence2020 = df2020.groupby(['Sector', 'PolicyInstrument'])['Country_x'].nunique()
+prevalence2000 = df2000.groupby(['Sector', 'PolicyInstrument', 'Policy[Country]'])['Share emissions Incl.'].mean()
+prevalence2005 = df2005.groupby(['Sector', 'PolicyInstrument', 'Policy[Country]'])['Share emissions Incl.'].mean()
+prevalence2010 = df2010.groupby(['Sector', 'PolicyInstrument', 'Policy[Country]'])['Share emissions Incl.'].mean()
+prevalence2015 = df2015.groupby(['Sector', 'PolicyInstrument', 'Policy[Country]'])['Share emissions Incl.'].mean()
+prevalence2020 = df2020.groupby(['Sector', 'PolicyInstrument', 'Policy[Country]'])['Share emissions Incl.'].mean()
 
 frame = {'2000': prevalence2000,
          '2005': prevalence2005,
@@ -93,23 +89,8 @@ frame = {'2000': prevalence2000,
          '2015': prevalence2015,
          '2020': prevalence2020}
 
-results_prevalence = pd.DataFrame(frame)
-results_prevalence.to_csv(r'C:\Users\HP\PycharmProjects\CPDB\data\results_prevalence.csv', encoding='utf-8', index=True)
-results_prevalence.reset_index(inplace=True)
-
-# To be able to create the table on python the data has to be tidy on the period as well
-# This is step is only neccesary if one wants to create the table in Python
-
-# select_period = results_prevalence.iloc[:, 3:8]
-# select_period.reset_index(inplace=True)
-# melt_period = pd.melt(select_period, id_vars='index', value_vars=['2000', '2005', '2010', '2015', '2020'])
-#
-# base_period = results_prevalence.iloc[:, 0:2]
-# base_period.reset_index(inplace=True)
-# base_period = base_period.sort_values(by=['index', 'Sector', 'PolicyInstrument'])
-#
-# df_ipccREStidy = pd.merge(base_period, melt_period, how='left', left_on='index', right_on='index')
-# df_ipccREStidy.rename(columns={'variable': 'period', 'value': 'emissions'}, inplace=True)
-# df_ipccREStidy.drop(columns='index', inplace=True)
+r_prevalence = pd.DataFrame(frame)
+r_prevalence.to_csv(r'results\results_prevalence.csv', encoding='utf-8', index=True)
+r_prevalence.reset_index(inplace=True)
 
 # </editor-fold>
