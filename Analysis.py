@@ -93,4 +93,21 @@ r_prevalence = pd.DataFrame(frame)
 r_prevalence.to_csv(r'results\results_prevalence.csv', encoding='utf-8', index=True)
 r_prevalence.reset_index(inplace=True)
 
+
 # </editor-fold>
+
+# Investigates policy sequencing in the countries analysed
+
+# For the analysis of sequencing we focus on policy decisions > 1990
+
+df_PolTidy_seq = df_PolTidy[df_PolTidy['Policy[Date of decision]'] >= 2000]
+
+# Defining quantile function
+def q5(x):
+    return x.quantile(0.05)
+
+
+seq_sectors = df_PolTidy_seq.groupby(['Policy[Country]', 'Sector'])['Policy[Date of decision]'] \
+    .agg(['min', 'max', 'count', 'mean', pd.Series.mode, q5])
+
+seq_sectors.to_csv('results/SeqSector.csv')
