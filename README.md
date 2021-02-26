@@ -12,7 +12,7 @@ policy options is in the file 'Code.csv.'
 The main scripts are found in the root folder:
 
  - DataPreparation.py prepares the data for the analysis, including general cleaning and filters.
- - Analysis.py contains the code necessary to generate Figure 2 in the manuscript.
+ - Analysis.py contains the code necessary to generate the data for Figure 2 in the manuscript.
  
  For more details on the definition of policies, policy instruments and other terminology please refer 
  to the supplementary material of the manuscript (DOI:XXXXXXXXX) or contact the author at:
