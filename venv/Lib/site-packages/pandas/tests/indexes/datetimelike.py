@@ -1,4 +1,5 @@
 """ generic datetimelike tests """
+
 import numpy as np
 import pytest
 
@@ -9,18 +10,6 @@ from .common import Base
 
 
 class DatetimeLike(Base):
-    def test_argmax_axis_invalid(self):
-        # GH#23081
-        rng = self.create_index()
-        with pytest.raises(ValueError):
-            rng.argmax(axis=1)
-        with pytest.raises(ValueError):
-            rng.argmin(axis=2)
-        with pytest.raises(ValueError):
-            rng.min(axis=-2)
-        with pytest.raises(ValueError):
-            rng.max(axis=-3)
-
     def test_can_hold_identifiers(self):
         idx = self.create_index()
         key = idx[0]
@@ -31,12 +20,17 @@ class DatetimeLike(Base):
         idx = self.create_index()
         tm.assert_index_equal(idx, idx.shift(0))
 
+    def test_shift_empty(self):
+        # GH#14811
+        idx = self.create_index()[:0]
+        tm.assert_index_equal(idx, idx.shift(1))
+
     def test_str(self):
 
         # test the string repr
         idx = self.create_index()
         idx.name = "foo"
-        assert not "length={}".format(len(idx)) in str(idx)
+        assert not (f"length={len(idx)}" in str(idx))
         assert "'foo'" in str(idx)
         assert type(idx).__name__ in str(idx)
 
@@ -44,7 +38,7 @@ class DatetimeLike(Base):
             if idx.tz is not None:
                 assert idx.tz in str(idx)
         if hasattr(idx, "freq"):
-            assert "freq='{idx.freqstr}'".format(idx=idx) in str(idx)
+            assert f"freq='{idx.freqstr}'" in str(idx)
 
     def test_view(self):
         i = self.create_index()
@@ -80,8 +74,8 @@ class DatetimeLike(Base):
         expected = index + index.freq
 
         # don't compare the freqs
-        if isinstance(expected, pd.DatetimeIndex):
-            expected._data.freq = None
+        if isinstance(expected, (pd.DatetimeIndex, pd.TimedeltaIndex)):
+            expected = expected._with_freq(None)
 
         result = index.map(mapper(expected, index))
         tm.assert_index_equal(result, expected)
@@ -95,3 +89,30 @@ class DatetimeLike(Base):
         expected = pd.Index([np.nan] * len(index))
         result = index.map(mapper([], []))
         tm.assert_index_equal(result, expected)
+
+    def test_getitem_preserves_freq(self):
+        index = self.create_index()
+        assert index.freq is not None
+
+        result = index[:]
+        assert result.freq == index.freq
+
+    def test_where_cast_str(self):
+        index = self.create_index()
+
+        mask = np.ones(len(index), dtype=bool)
+        mask[-1] = False
+
+        result = index.where(mask, str(index[0]))
+        expected = index.where(mask, index[0])
+        tm.assert_index_equal(result, expected)
+
+        result = index.where(mask, [str(index[0])])
+        tm.assert_index_equal(result, expected)
+
+        msg = "value should be a '.*', 'NaT', or array of those"
+        with pytest.raises(TypeError, match=msg):
+            index.where(mask, "foo")
+
+        with pytest.raises(TypeError, match=msg):
+            index.where(mask, ["foo"])

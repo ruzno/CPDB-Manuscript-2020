@@ -47,20 +47,22 @@ class TestTimedeltaIndex:
 
     def test_astype(self):
         # GH 13149, GH 13209
-        idx = TimedeltaIndex([1e14, "NaT", NaT, np.NaN])
+        idx = TimedeltaIndex([1e14, "NaT", NaT, np.NaN], name="idx")
 
         result = idx.astype(object)
-        expected = Index([Timedelta("1 days 03:46:40")] + [NaT] * 3, dtype=object)
+        expected = Index(
+            [Timedelta("1 days 03:46:40")] + [NaT] * 3, dtype=object, name="idx"
+        )
         tm.assert_index_equal(result, expected)
 
         result = idx.astype(int)
         expected = Int64Index(
-            [100000000000000] + [-9223372036854775808] * 3, dtype=np.int64
+            [100000000000000] + [-9223372036854775808] * 3, dtype=np.int64, name="idx"
         )
         tm.assert_index_equal(result, expected)
 
         result = idx.astype(str)
-        expected = Index(str(x) for x in idx)
+        expected = Index([str(x) for x in idx], name="idx")
         tm.assert_index_equal(result, expected)
 
         rng = timedelta_range("1 days", periods=10)
@@ -102,10 +104,10 @@ class TestTimedeltaIndex:
             idx.astype(dtype)
 
     def test_astype_category(self):
-        obj = pd.timedelta_range("1H", periods=2, freq="H")
+        obj = timedelta_range("1H", periods=2, freq="H")
 
         result = obj.astype("category")
-        expected = pd.CategoricalIndex([pd.Timedelta("1H"), pd.Timedelta("2H")])
+        expected = pd.CategoricalIndex([Timedelta("1H"), Timedelta("2H")])
         tm.assert_index_equal(result, expected)
 
         result = obj._data.astype("category")
@@ -113,9 +115,9 @@ class TestTimedeltaIndex:
         tm.assert_categorical_equal(result, expected)
 
     def test_astype_array_fallback(self):
-        obj = pd.timedelta_range("1H", periods=2)
+        obj = timedelta_range("1H", periods=2)
         result = obj.astype(bool)
-        expected = pd.Index(np.array([True, True]))
+        expected = Index(np.array([True, True]))
         tm.assert_index_equal(result, expected)
 
         result = obj._data.astype(bool)
