@@ -1,9 +1,10 @@
 This project refers to the analysis of the climatepolicydatabase.org data used in the 
 publication 'Twenty years of climate policy: G20 coverage increased, but important gaps remain.'
 
-The database ('source_database_23_06_2021.csv') used in the manuscript is in the folder *data*.
+**Please cite the original manuscript when using the data.**
 
-In the same folder we add country data, including GHG emissions countries analysed in the paper.
+The database ('source_database_23_06_2021.csv') used in the manuscript is in the permanent repository at 
+(DOI:10.4121/12962288)
 
 The main scripts are in the root folder:
 
